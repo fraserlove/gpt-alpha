@@ -17,13 +17,12 @@ shard_size = int(1e8) # 100M tokens per shard, total of 100 shards
 CACHE_DIR = os.path.join(os.path.dirname(__file__), local_dir)
 os.makedirs(CACHE_DIR, exist_ok=True)
 
+tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
+
 # Download the dataset from Hugging Face
 dataset = datasets.load_dataset('HuggingFaceFW/fineweb-edu', name=remote_name, split='train')
 
 def tokenise(doc: dict) -> np.ndarray:
-    tokeniser = tiktoken.get_encoding('gpt2')
-    # Alternatively, use the custom tokeniser from gpt.tokeniser
-    # tokeniser = GPTTokeniser('gpt.tkn')
     tokens = [tokeniser._special_tokens['<|endoftext|>']]
     tokens.extend(tokeniser.encode_ordinary(doc['text']))
     tokens = np.array(tokens)

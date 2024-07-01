@@ -1,15 +1,26 @@
 """
-GPT (byte-level) Byte Pair Encoding (BPE) Tokenizer.
-Handles special tokens and the regular expression splitting pattern.
+GPT (byte-level) Byte Pair Encoding (BPE) Tokeniser.
 
-Based off the GPT-2 tokeniser:
+Based off the gpt2 and cl100k_base encodings from TikToken. Handles special tokens and
+the regular expression splitting pattern for GPT-2 and GPT-4. The API is designed to be
+identical to the TikToken tokeniser.
+
+Run this script to train a new tokeniser on the first 10,000 texts in fineweb-edu to
+generate a vocabulary of 50,257 tokens (50,000 BPE + 256 Byte tokens + <|endoftext|>
+token) similar to GPT-2. The tokeniser can be saved to a file and loaded later to
+encode and decode text.
+
+References
+1) GPT-2 Tokeniser:
 https://github.com/openai/gpt-2/blob/master/src/encoder.py
+2) TikToken:
+https://github.com/openai/tiktoken
 """
 import datasets
 import regex as re
 
 # Regular expression splitting patterns for GPT-2 and GPT-4.
-# See https://github.com/openai/tiktoken/blob/main/tiktoken_ext/openai_public.py
+# https://github.com/openai/tiktoken/blob/main/tiktoken_ext/openai_public.py
 GPT2_SPLIT_PATTERN = r"'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"
 GPT4_SPLIT_PATTERN = r"'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"
 

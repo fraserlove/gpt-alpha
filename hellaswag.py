@@ -1,31 +1,29 @@
 """
 Downloads and evaluates HellaSwag, a commonsense reasoning dataset.
+
+Dataset consists of a context and four possible completions, one of which is correct.
+
+Run this script to download the HellaSwag dataset and evaluate a HuggingFace GPT-2 model
+on the validation set. The model is evaluated by predicting the most likely completion given
+the context.
 """
 
 import os
 import tqdm
 import json
+import argparse
 import tiktoken
 import requests
 import torch
 import torch.nn.functional as F
-from transformers import GPT2LMHeadModel
-
-# Note that the validation set has 10,042 examples
 
 local_dir = 'cache/hellaswag' # Local directory to save the dataset
-
-torch.set_float32_matmul_precision('high') # Use tensor cores for matmul
-
-device = f'cuda' if torch.cuda.is_available() else 'cpu' # Use GPU if available
 
 # Create the local directory if it doesn't exist
 CACHE_DIR = os.path.join(os.path.dirname(__file__), local_dir)
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-tokeniser = tiktoken.get_encoding('gpt2')
-# Alternatively, use the custom tokeniser from gpt.tokeniser
-# tokeniser = GPTTokeniser('gpt.tkn')
+tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 
 def download_file(url: str, file_name: str, chunk_size: int  = 1024) -> None:
     """Download a file from a given url."""
@@ -67,7 +65,7 @@ def prepare_example(example: dict) -> tuple[dict, torch.Tensor, torch.Tensor, in
     tok_rows = []
     mask_rows = []
     for end in endings:
-        end_tokens = tokeniser.encode(" " + end) # Prepend a space to match the tokeniser
+        end_tokens = tokeniser.encode(' ' + end) # Prepend a space to match the tokeniser
         tok_rows.append(ctx_tokens + end_tokens)
         mask_rows.append([0] * len(ctx_tokens) + [1] * len(end_tokens))
         data['ending_tokens'].append(end_tokens)
@@ -76,14 +74,15 @@ def prepare_example(example: dict) -> tuple[dict, torch.Tensor, torch.Tensor, in
     max_len = max(len(row) for row in tok_rows)
     tokens = torch.zeros((4, max_len), dtype=torch.long)
     mask = torch.zeros((4, max_len), dtype=torch.long)
-    for i, (tok_row, mask_row) in enumerate(zip(tok_rows, mask_rows)):
-        tokens[i, :len(tok_row)] = torch.tensor(tok_row)
-        mask[i, :len(mask_row)] = torch.tensor(mask_row)
+    for k, (tok_row, mask_row) in enumerate(zip(tok_rows, mask_rows)):
+        tokens[k, :len(tok_row)] = torch.tensor(tok_row)
+        mask[k, :len(mask_row)] = torch.tensor(mask_row)
 
     return data, tokens, mask, label
 
-def most_likely_row(tokens, mask, logits):
+def most_likely_row(tokens: torch.Tensor, mask: torch.Tensor, logits: torch.Tensor) -> int: 
     """Predict the most likely row given the tokens, mask and logits."""
+
     # Evaluate the autoregressive loss at all positions
     shift_logits = logits[..., :-1, :].contiguous()
     shift_tokens = tokens[..., 1:].contiguous()
@@ -91,12 +90,15 @@ def most_likely_row(tokens, mask, logits):
     flat_shift_tokens = shift_tokens.view(-1)
     shift_losses = F.cross_entropy(flat_shift_logits, flat_shift_tokens, reduction='none')
     shift_losses = shift_losses.view(tokens.size(0), -1)
+
     # Calculate the average loss for the completion region (mask == 1) for each row
     shift_mask = (mask[..., 1:]).contiguous() # Skip the context
     masked_shift_losses = shift_losses * shift_mask
+
     # Sum and divide by the number of 1s in the mask to get the average loss
     sum_loss = masked_shift_losses.sum(dim=1)
     avg_loss = sum_loss / shift_mask.sum(dim=1)
+
     # Completion with the minimum loss is the prediction
     pred = avg_loss.argmin().item()
     return pred
@@ -116,8 +118,10 @@ def evaluate(model_type, device):
     # Load the model
     model = GPT2LMHeadModel.from_pretrained(model_type)
     model.to(device)
-    model = torch.compile(model)
+    # Compile the model for faster execution
+    # model = torch.compile(model)
 
+    n_total = 0
     n_correct = 0
     examples = iterate_examples('val')
     for example in examples:
@@ -127,9 +131,28 @@ def evaluate(model_type, device):
         # Predict the most likely row
         pred = most_likely_row(tokens, mask, logits)
         # Update accuracy
+        n_total += 1
         n_correct += int(pred == label)
 
-    print(f'{model_type} acc: {n_correct / len(examples):.4f}')
+        # Debug: Print the context, completions and the predicted and actual labels
+        if n_total % 1000 == 0:
+            print(f'--- Example {n_total} ---')
+            context = example['ctx']
+            print(f'Context:\n {context}')
+            print(f'Endings:')
+            for i, end in enumerate(example['endings']):
+                print(f' ({i}) {end}' + (' (P)' if i == label else '') + (' (A)' if i == pred else ''))
+
+    print(f'{model_type} acc: {n_correct / n_total:.4f}')
 
 if __name__ == '__main__':
-    evaluate('gpt2', device)
+    # For HuggingFace GPT-2 model evaluation - pip install transformers
+    from transformers import GPT2LMHeadModel
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--model_type', type=str, default='gpt2', help='gpt2, gpt2-medium, gpt2-large, gpt2-xl')
+    args = parser.parse_args()
+
+    torch.set_float32_matmul_precision('high') # Use tensor cores for matmul
+    device = f'cuda' if torch.cuda.is_available() else 'cpu' # Use GPU if available
+    evaluate(args.model_type, device)

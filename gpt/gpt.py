@@ -1,10 +1,13 @@
 """
-An implementation of GPT-3 following the architecture of GPT-2 with the improvements
-from GPT-3.
+Full implementation of a Generative Pre-trained Transformer (GPT) model.
 
-GPT-2 Paper - https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf
-GPT-3 Paper - https://arxiv.org/abs/2005.14165
+References
+1) GPT-2 Paper:
+https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf
+2) GPT-3 Paper:
+https://arxiv.org/abs/2005.14165
 """
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,8 +15,8 @@ from dataclasses import dataclass
 
 @dataclass
 class GPTConfig:
-    block_size: int = 2048 # Maximum context length
-    vocab_size: int = 50257 # Number of tokens (50,000 BPE + 256 Byte tokens + <|endoftext|> token)
+    block_size: int = 1024 # Maximum context length
+    vocab_size: int = 50257 # Number of unique tokens
     n_layer: int = 12 # Number of transformer blocks
     n_head: int = 12 # Number of self-attention heads
     n_embd: int = 768 # Embedding dimensionality
@@ -24,16 +27,16 @@ class CausalSelfAttention(nn.Module):
     def __init__(self, config: GPTConfig):
         super().__init__()
         assert config.n_embd % config.n_head == 0, 'Embedding dimensionality must be divisible by number of heads'
-        # Linear transformations for queries, keys, and values
+        # Transformations for queries, keys, and values for all heads
         self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd)
         # Output projection
         self.c_proj = nn.Linear(config.n_embd, config.n_embd)
-        self.c_proj.GPT_SCALE_INIT = 1 # Flag for scaling initialisation
         self.n_head = config.n_head
         self.n_embd = config.n_embd
         # Autoregressive mask - not needed due as using PyTorch's flash-attention implementation
         # self.register_buffer('mask', torch.tril(torch.ones(config.block_size, config.block_size))
         #     .view(1, 1, config.block_size, config.block_size))
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, T, C = x.shape # batch_size, block_size, n_embd
@@ -63,7 +66,6 @@ class MLP(nn.Module):
         self.c_fc = nn.Linear(config.n_embd, 4 * config.n_embd)
         self.gelu = nn.GELU(approximate='tanh')
         self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd)
-        self.c_proj.GPT_SCALE_INIT = 1 # Flag for scaling initialisation
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.c_fc(x)
@@ -108,16 +110,16 @@ class GPT(nn.Module):
         self.apply(self._init_weights)
 
     def _init_weights(self, module):
-        std = 0.02
         if isinstance(module, nn.Linear):
-            # Scale init of residual layers as std grows with depth in residual streams
-            if hasattr(module, 'GPT_SCALE_INIT'):
-                std *= (2 * self.config.n_layer) ** -0.5
-            nn.init.normal_(module.weight, mean=0.0, std=std)
+            nn.init.normal_(module.weight, mean=0.0, std=0.02)
             if module.bias is not None:
                 nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
-            nn.init.normal_(module.weight, mean=0.0, std=std)
+            nn.init.normal_(module.weight, mean=0.0, std=0.02)
+        # Scale init of residual layers as std grows with depth in residual streams
+        for name, param in self.named_parameters():
+            if name.endswith('c_proj.weight'):
+                nn.init.normal_(param, mean=0.0, std=0.02 * (2 * self.config.n_layer) ** -0.5)
 
     def forward(self, x: torch.Tensor, y: torch.Tensor = None) -> tuple[torch.Tensor, torch.Tensor]:
         B, T = x.shape # batch_size, block_size
@@ -136,7 +138,7 @@ class GPT(nn.Module):
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), y.view(-1))
         return logits, loss
     
-    def configure_optimisers(self, weight_decay: float, lr: float, device: str) -> torch.optim.Optimizer:
+    def configure_optimisers(self, weight_decay: float, lr: float) -> torch.optim.Optimizer:
         """Configure AdamW optimiser with weight decay and learning rate."""
         params = {name: param for name, param in self.named_parameters() if param.requires_grad}
         # Any parameter that is at least 2D has weight decay applied - i.e. all weight tensors
@@ -147,6 +149,31 @@ class GPT(nn.Module):
             {'params': decay_params, 'weight_decay': weight_decay},
             {'params': no_decay_params, 'weight_decay': 0.0}
         ]
-        use_fused = 'cuda' in device # Use fused optimiser for faster training on GPU
-        optimiser = torch.optim.AdamW(optim_groups, lr=lr, betas=(0.9, 0.95), eps=1e-8, fused=use_fused)
+        # Use fused optimiser for faster training on GPU
+        optimiser = torch.optim.AdamW(optim_groups, lr=lr, betas=(0.9, 0.95), eps=1e-8, fused=True)
         return optimiser
+    
+    @torch.no_grad()
+    def generate(self, x: torch.Tensor, max_tokens: int = 64, n_samples: int = 1, temp: float = 1.0, top_k: int = 50, seed: int = None) -> torch.Tensor:
+        rng = torch.Generator(device=x.device).manual_seed(seed)
+        # Repeat the input context for each sample
+        x = x.unsqueeze(0).repeat(n_samples, 1)
+        """Generate a sequence of tokens given an initial context."""
+        for _ in range(max_tokens):
+            # Crop the sequence context to the last block_size tokens
+            x = x if x.size(1) <= self.config.block_size else x[:, -self.config.block_size:]
+            # Get the previous predictions
+            logits, _ = self(x)
+            # Scale the logits by the temperature and keep only the last prediction
+            logits = logits[:, -1, :] / temp
+            # Softmax for probabilities
+            probs = F.softmax(logits, dim=1)
+            # Top-k sampling
+            topk_probs, topk_indices = torch.topk(probs, top_k, dim=-1)
+            # Sample from the top-k probabilities
+            ix = torch.multinomial(topk_probs, 1, generator=rng)
+            # Gather sampled token indices
+            x_next = torch.gather(topk_indices, -1, ix)
+            # Concatenate sampled token to the sequence
+            x = torch.cat((x, x_next), dim=1)
+        return x
