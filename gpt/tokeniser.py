@@ -251,7 +251,7 @@ if __name__ == '__main__':
     # Load training text from fineweb-edu dataset
     dataset = datasets.load_dataset('HuggingFaceFW/fineweb-edu', name=remote_name, split='train', streaming=True)
 
-    # Train on the first 10,000 texts
+    # Train on the first 10,000 documents
     text = '\n'.join([item['text'] for i, item in enumerate(dataset) if i < int(1e5)])
 
     tokeniser = GPTTokeniser()

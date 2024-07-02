@@ -1,5 +1,5 @@
 torch
 numpy
+regex
 datasets
 tiktoken
-regex

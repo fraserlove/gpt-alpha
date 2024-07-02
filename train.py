@@ -43,7 +43,7 @@ tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 # 10B tokens. This corresponds to 10^10 / 2^19 = 19073 iterations. The vocabulary size is rounded
 # up to the nearest multiple of 128, which is 50304, for efficiency.
 # --------------------------------------------------------------------------------------------
-batch_size = 64
+batch_size = 32
 total_batch_size = 524288
 vocab_size = 50304
 max_lr = 18e-4

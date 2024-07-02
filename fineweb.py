@@ -23,14 +23,16 @@ tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 dataset = datasets.load_dataset('HuggingFaceFW/fineweb-edu', name=remote_name, split='train')
 
 def tokenise(doc: dict) -> np.ndarray:
+    """Tokenise a document."""
     tokens = [tokeniser._special_tokens['<|endoftext|>']]
     tokens.extend(tokeniser.encode_ordinary(doc['text']))
     tokens = np.array(tokens)
     assert (0 <= tokens).all() and (tokens < 2**16).all(), 'Token dictionary exceeds bounds for uint16'
     return tokens.astype(np.uint16)
 
-# Tokenise all documents and write output shards, each of shard_size tokens (last shard has remainder)
 nprocs = max(1, os.cpu_count() // 2) # Use half the CPU cores
+
+# Tokenise all documents and write output shards, each of shard_size tokens (last shard has remainder)
 with multiprocessing.Pool(nprocs) as pool:
     shard_idx = 0
     all_tokens = np.empty((shard_size,), dtype=np.uint16) # Pre-allocate the maximum shard size
@@ -48,7 +50,7 @@ with multiprocessing.Pool(nprocs) as pool:
         else:
             # Write the current shard and reset for the next one
             split = 'val' if shard_idx == 0 else 'train'
-            filename = os.path.join(CACHE_DIR, f'edufineweb_{split}_{shard_idx:04d}')
+            filename = os.path.join(CACHE_DIR, f'fineweb_edu_{split}_{shard_idx:04d}')
             # Pack document into this shard, remaining tokens go to next one
             remainder = shard_size - token_count
             prog_bar.update(remainder)
@@ -63,5 +65,5 @@ with multiprocessing.Pool(nprocs) as pool:
     # Write remaining tokens to the last shard
     if token_count != 0:
         split = 'val' if shard_idx == 0 else 'train'
-        filename = os.path.join(CACHE_DIR, f'edufineweb_{split}_{shard_idx:04d}')
+        filename = os.path.join(CACHE_DIR, f'fineweb_edu_{split}_{shard_idx:04d}')
         np.save(filename, all_tokens[:token_count])
