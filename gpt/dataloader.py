@@ -52,7 +52,6 @@ class GPTDataLoader:
         documents = [tokens[start:end] for start, end in zip([0] + eot_positions[:-1], eot_positions)]
         # Shuffle the documents
         np.random.shuffle(documents)
-        print(tokeniser.decode(documents[0][:10]))
         return torch.cat(documents)
 
     def next_batch(self) -> tuple[torch.Tensor, torch.Tensor]:
