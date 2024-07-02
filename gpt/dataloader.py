@@ -46,7 +46,7 @@ class GPTDataLoader:
         # Load the GPT-2 tokeniser
         tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
         # Get the token ID for the end of text token
-        eot_token = tokeniser.encode_ordinary('<|endoftext|>')[0]
+        eot_token = tokeniser._special_tokens['<|endoftext|>']
         # Split tokens into documents using the end of text token
         eot_positions = (torch.where(tokens == eot_token)[0] + 1).tolist()
         documents = [tokens[start:end] for start, end in zip([0] + eot_positions[:-1], eot_positions)]
