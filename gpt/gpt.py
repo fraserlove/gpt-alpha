@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 @dataclass
 class GPTConfig:
-    block_size: int = 2048 # Maximum context length
+    block_size: int = 1024 # Maximum context length
     vocab_size: int = 50257 # Number of unique tokens
     n_layer: int = 12 # Number of transformer blocks
     n_head: int = 12 # Number of self-attention heads

@@ -6,6 +6,14 @@ The model surpasses GPT-2 124M on [HellaSwag](https://arxiv.org/pdf/1905.07830) 
 ![Alt text](cache/logs/124M_14B_loss.png)
 ![Alt text](cache/logs/124M_14B_hs.png)
 
+Here are some example completions from the model after training on 14B tokens. The context is *`Once upon a time,'*. The completions are generated using the top-$k$ sampling strategy with a maximum length of 64 tokens, a temperature of 1.0 and a $k$ value of 50.
+
+```
+Once upon a time, you could walk into a restaurant and expect to enjoy a bite of steak, with all its extra stuff, but a burger that was made to order wasn’t. This is just my personal favorite, though, right from my favorite restaurant to me, it took me so long. I would
+
+Once upon a time, there were two kings that ruled the land by force. That was the first king. The next was a king who was king because God called him so (Psalm 3:1-5). The two kings are the same God created two kingdoms, one to rule both nations and the other to
+```
+
 ## Installation and Usage
 Run the following to install the GPT and its required dependencies:
 ```bash
