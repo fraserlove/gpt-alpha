@@ -3,8 +3,8 @@ A full implementation of a Generative Pre-trained Transformer (GPT) model follow
 
 The model surpasses GPT-2 124M on [HellaSwag](https://arxiv.org/pdf/1905.07830) after just 6B tokens. This is a 16x improvement over GPT-2 124M, which was trained on 100B tokens. It is expected that with enough training (~45B tokens), the model will surpass GPT-3 125M, which was trained on 300B tokens.
 
-![Alt text](assets/124M_14B_loss.png)
-![Alt text](assets/124M_14B_hs.png)
+![Alt text](assets/124M_10B_loss.png)
+![Alt text](assets/124M_10B_hs.png)
 
 Here are some example completions from the model after training on 14B tokens. The context is *`Once upon a time,'*. The completions are generated using the top-$k$ sampling strategy with a maximum length of 64 tokens, a temperature of 1.0 and a $k$ value of 50.
 
