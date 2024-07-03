@@ -182,6 +182,7 @@ while i < max_iters:
         val_loader.reset()
         with torch.no_grad():
             loss_acc = 0.0
+            # Validate over just a subset of the entire validation set for speed
             for _ in range(val_iters):
                 x, y = val_loader.next_batch()
                 x, y = x.to(device), y.to(device)
@@ -231,7 +232,7 @@ while i < max_iters:
         if master_process:
             print(f'hellaswag {acc:.4f}')
             with open(log_file, 'a') as f:
-                f.write(f'{i:2d} ({(i + 1) * total_batch_size}) hellaswag {acc:.4f}\n')
+                f.write(f'{i:2d} ({(i + 1) * total_batch_size}) hella {acc:.4f}\n')
 
         # Generate samples
         context = 'Once upon a time,'
@@ -239,12 +240,9 @@ while i < max_iters:
         # Generate samples from the model with a separate seed for each process
         with torch.autocast(device_type=device.split(':')[0], dtype=torch.bfloat16):
             samples = raw_model.generate(context, n_samples=n_samples, seed=ddp_rank)
-
         # Decode the generated tokens
-        for j in range(n_samples):
-            tokens = samples[j, :max_tokens].tolist()
-            decoded = tokeniser.decode(tokens)
-            print(f'{decoded}\n')
+        samples = [samples[j, :max_tokens].tolist() for j in range(n_samples)]
+        print('\n'.join(tokeniser.decode(sample) for sample in samples))
 
     # Training
     model.train()

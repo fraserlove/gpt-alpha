@@ -19,6 +19,7 @@ class GPTDataLoader:
         self.T = T
         self.proc_rank = proc_rank
         self.n_proc = n_proc
+        self.split = split
         assert split in {'train', 'val'}
 
         data_root = 'cache/fineweb_edu_10B'
@@ -30,7 +31,8 @@ class GPTDataLoader:
 
     def reset(self) -> None:
         """Shuffle the shards and reset the data loader."""
-        np.random.shuffle(self.shards)
+        if self.split == 'train':
+            np.random.shuffle(self.shards)
         # Load the first shard and reset the current position
         self.current_shard = 0
         self.tokens = self.load_shard(self.shards[self.current_shard])
@@ -39,20 +41,25 @@ class GPTDataLoader:
     def load_tokens(self, filename: str) -> torch.Tensor:
         """Load tokenised data from a file."""
         return torch.tensor(np.load(filename).astype(np.int32), dtype=torch.long)
-
-    def load_shard(self, shard_path: str) -> torch.Tensor:
-        """Load a shard of tokenised data and shuffle the documents within."""
-        tokens = self.load_tokens(shard_path)
+    
+    def shuffle_shard(self, shard: torch.Tensor) -> torch.Tensor:
         # Load the GPT-2 tokeniser
         tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
         # Get the token ID for the end of text token
         eot_token = tokeniser._special_tokens['<|endoftext|>']
-        # Split tokens into documents using the end of text token
-        eot_positions = (torch.where(tokens == eot_token)[0] + 1).tolist()
-        documents = [tokens[start:end] for start, end in zip([0] + eot_positions[:-1], eot_positions)]
+        # Split shard into documents using the end of text token
+        eot_positions = (torch.where(shard == eot_token)[0] + 1).tolist()
+        documents = [shard[start:end] for start, end in zip([0] + eot_positions[:-1], eot_positions)]
         # Shuffle the documents
         np.random.shuffle(documents)
         return torch.cat(documents)
+
+    def load_shard(self, shard_path: str) -> torch.Tensor:
+        """Load a shard of tokenised data and shuffle the documents within."""
+        shard = self.load_tokens(shard_path)
+        if self.split == 'train':
+            shard = self.shuffle_shard(shard)
+        return shard
 
     def next_batch(self) -> tuple[torch.Tensor, torch.Tensor]:
         """Return the next batch of training data."""
