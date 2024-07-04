@@ -74,7 +74,7 @@ class GPTDataLoader:
         if self.current_pos + (B * T * self.n_proc + 1) > len(self.tokens):
             self.current_shard += 1
             # If all shards have been seen (epoch completed), reset the data loader and reshuffle the shards
-            if self.current_shard >= len(self.shards):
+            if self.current_shard == len(self.shards):
                 self.reset()
             else:
                 self.tokens = self.load_shard(self.shards[self.current_shard])
