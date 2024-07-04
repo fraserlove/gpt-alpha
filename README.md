@@ -1,12 +1,11 @@
 # GPT
 A full implementation of a Generative Pre-trained Transformer (GPT) model following the architecture of OpenAI's [GPT-2](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) and [GPT-3](https://arxiv.org/abs/2005.14165) models as well as [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy. The model is implemented in PyTorch and supports both single-GPU and multi-GPU training. The model is trained on the 10B token subset of [fineweb-edu](https://arxiv.org/pdf/2406.17557), a large-scale dataset of educational content.
 
-The model surpasses GPT-2 124M on [HellaSwag](https://arxiv.org/pdf/1905.07830) after just 6B tokens. This is a 16x improvement over GPT-2 124M, which was trained on 100B tokens. It is expected that with enough training (~45B tokens), the model will surpass GPT-3 125M, which was trained on 300B tokens.
-
+The model surpasses GPT-2 124M on [HellaSwag](https://arxiv.org/pdf/1905.07830) after just 6B tokens. This is a 16x improvement over GPT-2 124M, which was trained on 100B tokens. It is expected that with enough training (~45B tokens), the model will surpass GPT-3 125M, which was trained on 300B tokens. Training the 124M model for 1 epoch of the 10B fineweb-edu subset took ~3 hours on 8x A100-SMX4 40GB GPUs. A batch size of 32 was used.
 ![Alt text](assets/124M_10B_loss.png)
 ![Alt text](assets/124M_10B_hs.png)
 
-Here are some example completions from the model after training on 14B tokens. The context is *`Once upon a time,'*. The completions are generated using the top-$k$ sampling strategy with a maximum length of 64 tokens, a temperature of 1.0 and a $k$ value of 50.
+Here are some example completions from the 124M model after training on 10B tokens. The context is *`Once upon a time,'*. The completions are generated using the top-$k$ sampling strategy with a maximum length of 64 tokens, a temperature of 1.0 and a $k$ value of 50.
 
 ```
 Once upon a time, you could walk into a restaurant and expect to enjoy a bite of steak, with all its extra stuff, but a burger that was made to order wasn’t. This is just my personal favorite, though, right from my favorite restaurant to me, it took me so long. I would
