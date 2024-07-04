@@ -44,6 +44,7 @@ class GPTDataLoader:
         return torch.tensor(np.load(filename).astype(np.int32), dtype=torch.long)
     
     def shuffle_shard(self, shard: torch.Tensor) -> torch.Tensor:
+        """Shuffle the documents within a shard."""
         # Load the GPT-2 tokeniser
         tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
         # Get the token ID for the end of text token
@@ -56,7 +57,7 @@ class GPTDataLoader:
         return torch.cat(documents)
 
     def load_shard(self, shard_path: str) -> torch.Tensor:
-        """Load a shard of tokenised data and shuffle the documents within."""
+        """Load a shard of tokenised data."""
         shard = self.load_tokens(shard_path)
         if self.split == 'train':
             shard = self.shuffle_shard(shard)
