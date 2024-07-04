@@ -21,6 +21,7 @@ class GPTDataLoader:
         self.n_proc = n_proc
         self.split = split
         assert split in {'train', 'val'}
+        self.rng = np.random.default_rng(42)
 
         data_root = 'cache/fineweb_edu_10B'
         shards = sorted([shard for shard in os.listdir(data_root) if split in shard])
@@ -31,10 +32,10 @@ class GPTDataLoader:
 
     def reset(self) -> None:
         """Shuffle the shards and reset the data loader."""
-        if self.split == 'train':
-            np.random.shuffle(self.shards)
-        # Load the first shard and reset the current position
         self.current_shard = 0
+        if self.split == 'train':
+            self.rng.shuffle(self.shards)
+        # Load the first shard and reset the current position
         self.tokens = self.load_shard(self.shards[self.current_shard])
         self.current_pos = self.B * self.T * self.proc_rank
 
@@ -51,7 +52,7 @@ class GPTDataLoader:
         eot_positions = (torch.where(shard == eot_token)[0] + 1).tolist()
         documents = [shard[start:end] for start, end in zip([0] + eot_positions[:-1], eot_positions)]
         # Shuffle the documents
-        np.random.shuffle(documents)
+        self.rng.shuffle(documents)
         return torch.cat(documents)
 
     def load_shard(self, shard_path: str) -> torch.Tensor:
@@ -70,7 +71,11 @@ class GPTDataLoader:
         self.current_pos += B * T * self.n_proc
         # If end of the shard is reached, move to the next shard
         if self.current_pos + (B * T * self.n_proc + 1) > len(self.tokens):
-            self.current_shard = (self.current_shard + 1) % len(self.shards)
-            self.tokens = self.load_shard(self.shards[self.current_shard])
-            self.current_pos = B * T * self.proc_rank
+            self.current_shard += 1
+            # If all shards have been seen (epoch completed), reset the data loader and reshuffle the shards
+            if self.current_shard >= len(self.shards):
+                self.reset()
+            else:
+                self.tokens = self.load_shard(self.shards[self.current_shard])
+                self.current_pos = B * T * self.proc_rank
         return x, y
