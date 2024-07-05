@@ -30,9 +30,8 @@ def tokenise(doc: dict) -> np.ndarray:
     assert (0 <= tokens).all() and (tokens < 2**16).all(), 'Token dictionary exceeds bounds for uint16'
     return tokens.astype(np.uint16)
 
-nprocs = max(1, os.cpu_count() // 2) # Use half the CPU cores
-
 # Tokenise all documents and write output shards, each of shard_size tokens (last shard has remainder)
+nprocs = max(1, os.cpu_count() - 2) # Use all but 2 CPU cores
 with multiprocessing.Pool(nprocs) as pool:
     shard_idx = 0
     all_tokens = np.empty((shard_size,), dtype=np.uint16) # Pre-allocate the maximum shard size
