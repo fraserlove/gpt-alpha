@@ -52,7 +52,7 @@ class GPTDataLoader:
         eot_positions = (torch.where(shard == eot_token)[0] + 1).tolist()
         documents = [shard[start:end] for start, end in zip([0] + eot_positions[:-1], eot_positions)]
         # Shuffle the documents
-        self.rng.shuffle(documents)
+        np.random.shuffle(documents)
         return torch.cat(documents)
 
     def load_shard(self, shard_path: str) -> torch.Tensor:
