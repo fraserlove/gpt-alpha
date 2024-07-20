@@ -19,6 +19,7 @@ import os
 import math
 import time
 import tiktoken
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.distributed as dist
@@ -27,7 +28,9 @@ import hellaswag
 from gpt.gpt import GPT, GPTConfig
 from gpt.dataloader import GPTDataLoader
 
-torch.manual_seed(42)
+ # Seed all devices for reproducibility
+torch.manual_seed(0)
+np.random.seed(0)
 # Improved performance by using TensorFloat32 or two bfloat16 for matmuls
 torch.set_float32_matmul_precision('high')
 
@@ -39,25 +42,29 @@ tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 # update, for GPT-2 / GPT-3 this is 2^19 = ~0.5M tokens. A cosine learning rate schedule is used,
 # with a warmup period of 375M tokens as in GPT-3. This corresponds to 375e6 / 2^19 = 715 warmup
 # iterations. A max learning rate of 18e-4 (3x that of GPT-3) is used with a linear decay over
-# the training period. The model is trained for 1 epoch on the fineweb_edu_10B dataset, which has
-# 10B tokens. This corresponds to 10^10 / 2^19 = 19073 iterations. The vocabulary size is rounded
-# up to the nearest multiple of 128, which is 50304, for efficiency.
+# the training period. The min learning rate set to 6e-5, the same as GPT-3. Each epoch on the
+# fineweb_edu_10B dataset corresponds to 10^10 / 2^19 = 19073 iterations. The vocabulary size is
+# rounded up to the nearest multiple of 128, which is 50304, for efficiency. The model is currently
+# trained for 5 epochs, which corresponds to 5 * 19073 = 95365 iterations. Batch sizes of 32/64 are
+# sufficient to fit the model on a single GPU with 40GB/80GB of memory repsecitvely.
 # --------------------------------------------------------------------------------------------
 batch_size = 64
 total_batch_size = 524288
 vocab_size = 50304
 max_lr = 18e-4
+min_lr = 6e-5
 warmup_iters = 715
-max_iters = 19073
+max_iters = 95365
 
 # -------------------- Logging, evaluation and checkpoint parameters -------------------------
 # Evaluation is performed every 250 iterations on 20 batches of the validation set and the 
-# HellaSwag dataset. The model generates 2 text samples of length 64 tokens per GPU every
-# 250 iterations. Model checkpoints are saved every 5000 iterations to the 'cache/logs' directory
-# alongside the training logs. The checkpoint file can be set to resume training from a previous
-# checkpoint. This checkpoint must be present in the 'cache/logs' directory with the .pt extension.
+# HellaSwag dataset. During evaluation, the model also generates 2 text samples of length 64
+# tokens per GPU. Training checkpoints are saved if the validation loss is the best so far and
+# stored in the 'cache/logs' directory alongside the training logs. The checkpoint file can be
+# set to resume training from a previous checkpoint. This checkpoint must be present in the
+# 'cache/logs' directory with the .pt extension.
 # --------------------------------------------------------------------------------------------
-eval_delta = 100
+eval_delta = 250
 n_samples = 2
 max_tokens = 64
 val_iters = 20
@@ -86,8 +93,6 @@ print(f'{device} {device_name}')
 
 def lr_schedule(i: int) -> float:
     """Cosine decay learning rate schedule with a linear warmup."""
-    min_lr = max_lr * 0.1
-
     if i < warmup_iters: # Linear warmup for warmup_iters
         return max_lr * (i + 1) / warmup_iters
 
@@ -205,6 +210,8 @@ while i < max_iters:
             checkpoint(log_dir, raw_model, n_params, i, loss_acc)
             if master_process:
                 print('saved checkpoint')
+                with open(log_file, 'a') as f:
+                    f.write(f'{i:2d} ({(i + 1) * total_batch_size}) ckpt\n')
 
         # HellaSwag
         n_correct = 0

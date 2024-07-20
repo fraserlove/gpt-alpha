@@ -21,7 +21,6 @@ class GPTDataLoader:
         self.n_proc = n_proc
         self.split = split
         assert split in {'train', 'val'}
-        self.rng = np.random.default_rng(42)
 
         data_root = 'cache/fineweb_edu_10B'
         shards = sorted([shard for shard in os.listdir(data_root) if split in shard])
@@ -34,7 +33,7 @@ class GPTDataLoader:
         """Shuffle the shards and reset the data loader."""
         self.current_shard = 0
         if self.split == 'train':
-            self.rng.shuffle(self.shards)
+            np.random.shuffle(self.shards)
         # Load the first shard and reset the current position
         self.tokens = self.load_shard(self.shards[self.current_shard])
         self.current_pos = self.B * self.T * self.proc_rank
