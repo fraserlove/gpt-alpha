@@ -211,7 +211,7 @@ while i < max_iters:
             if master_process:
                 print('saved checkpoint')
                 with open(log_file, 'a') as f:
-                    f.write(f'{i:2d} ({(i + 1) * total_batch_size}) ckpt\n')
+                    f.write(f'{i:2d} ({(i + 1) * total_batch_size}) ckpt {loss_acc.item():.4f}\n')
 
         # HellaSwag
         n_correct = 0
