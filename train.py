@@ -28,9 +28,9 @@ import hellaswag
 from gpt.gpt import GPT, GPTConfig
 from gpt.dataloader import GPTDataLoader
 
- # Seed all devices for reproducibility
-torch.manual_seed(0)
-np.random.seed(0)
+
+np.random.seed(1)
+torch.manual_seed(1)
 # Improved performance by using TensorFloat32 or two bfloat16 for matmuls
 torch.set_float32_matmul_precision('high')
 
