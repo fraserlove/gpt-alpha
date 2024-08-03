@@ -64,7 +64,7 @@ max_iters = 85829
 # set to resume training from a previous checkpoint. This checkpoint must be present in the
 # 'cache/logs' directory with the .pt extension.
 # --------------------------------------------------------------------------------------------
-eval_delta = 250
+eval_delta = 150
 n_samples = 2
 max_tokens = 64
 val_iters = 20
