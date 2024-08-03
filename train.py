@@ -249,7 +249,7 @@ while i < max_iters:
         with torch.autocast(device_type=device.split(':')[0], dtype=torch.bfloat16):
             samples = raw_model.generate(context, n_samples=n_samples, seed=ddp_rank)
         # Decode the generated tokens
-        samples = [samples[j, :max_tokens].tolist() for j in range(n_samples)]
+        samples = [samples[j, :].tolist() for j in range(n_samples)]
         print('\n'.join(tokeniser.decode(sample) for sample in samples))
 
     # Training

@@ -164,10 +164,10 @@ class GPT(nn.Module):
         """Generate a sequence of tokens given an initial context."""
         for _ in range(max_tokens):
             # Crop the sequence context to the last block_size tokens
-            x = x if x.size(1) <= self.config.block_size else x[:, -self.config.block_size:]
-            # Get the previous predictions
+            x = x[:, -self.config.block_size:]
+            # Forward pass
             logits, _ = self(x)
-            # Scale the logits by the temperature and keep only the last prediction
+            # Scale the logits by the temperature and keep only the last token prediction
             logits = logits[:, -1, :] / temp
             # Softmax for probabilities
             probs = F.softmax(logits, dim=1)
