@@ -155,7 +155,10 @@ class GPT(nn.Module):
     
     @torch.no_grad()
     def generate(self, x: torch.Tensor, max_tokens: int = 64, n_samples: int = 1, temp: float = 1.0, top_k: int = 50, seed: int = None) -> torch.Tensor:
-        rng = torch.Generator(device=x.device).manual_seed(seed)
+        """Generate sequences of tokens given an initial context."""
+        rng = torch.Generator(device=x.device)
+        if seed is not None:
+            rng.manual_seed(seed)
         # Repeat the input context for each sample
         x = x.unsqueeze(0).repeat(n_samples, 1)
         """Generate a sequence of tokens given an initial context."""

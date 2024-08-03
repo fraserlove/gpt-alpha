@@ -63,7 +63,7 @@ class GPTDataLoader:
         return shard
 
     def next_batch(self) -> tuple[torch.Tensor, torch.Tensor]:
-        """Return the next batch of training data."""
+        """Return the next batch of data."""
         B, T = self.B, self.T # batch_size, block_size
         buffer = self.tokens[self.current_pos : self.current_pos + B * T + 1]
         x = buffer[:-1].view(B, T)

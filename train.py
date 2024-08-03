@@ -1,8 +1,8 @@
 """
 Training script for GPT model on the fineweb_edu_10B dataset.
 
-This training script can be run both on a single gpu and also in a larger multi-GPU
-training run with distributed data parallel (DDP).
+Training can be run both on a single gpu and also in a larger multi-GPU training run
+with distributed data parallel (DDP).
 
 Tiktoken is the default tokeniser, however, a custom tokeniser can be used by replacing
 tiktoken.get_encoding('gpt2') with GPTTokeniser('gpt.tkn'). The fineweb-edu dataset
@@ -11,7 +11,7 @@ must be tokenised with the same tokeniser used during training.
 To run on a single GPU, use:
 $ python train.py
 
-To run with DDP on multiple GPUs on 1 node, use:
+To run with DDP on multiple GPUs on a single node, use:
 $ torchrun --standalone --nproc_per_node={n_gpus} train.py
 """
 
@@ -42,19 +42,19 @@ tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 # update, for GPT-2 / GPT-3 this is 2^19 = ~0.5M tokens. A cosine learning rate schedule is used,
 # with a warmup period of 375M tokens as in GPT-3. This corresponds to 375e6 / 2^19 = 715 warmup
 # iterations. A max learning rate of 18e-4 (3x that of GPT-3) is used with a linear decay over
-# the training period. The min learning rate set to 6e-5, the same as GPT-3. Each epoch on the
-# fineweb_edu_10B dataset corresponds to 10^10 / 2^19 = 19073 iterations. The vocabulary size is
-# rounded up to the nearest multiple of 128, which is 50304, for efficiency. The model is currently
-# trained for 5 epochs, which corresponds to 5 * 19073 = 95365 iterations. Batch sizes of 32/64 are
-# sufficient to fit the model on a single GPU with 40GB/80GB of memory repsecitvely.
+# the training period. Each epoch on the fineweb_edu_10B dataset corresponds to 10^10 / 2^19 =
+# 19073 iterations. The vocabulary size is rounded up to the nearest multiple of 128, which is
+# 50304, for efficiency. The model is trained for 4.5 epochs, which corresponds to 4.5 *
+# 19073 = 85829 iterations to surpass the performance of GPT-3 125M on the HellaSwag dataset.
+# Batch sizes of 32/64 are sufficient to fit a 124M model on a single GPU with 40GB / 80GB of
+# memory repsecitvely (if a block size of 1024 is used).
 # --------------------------------------------------------------------------------------------
 batch_size = 64
 total_batch_size = 524288
 vocab_size = 50304
 max_lr = 18e-4
-min_lr = 6e-5
 warmup_iters = 715
-max_iters = 95365
+max_iters = 85829
 
 # -------------------- Logging, evaluation and checkpoint parameters -------------------------
 # Evaluation is performed every 250 iterations on 20 batches of the validation set and the 
@@ -93,6 +93,7 @@ print(f'{device} {device_name}')
 
 def lr_schedule(i: int) -> float:
     """Cosine decay learning rate schedule with a linear warmup."""
+    min_lr = 0.04 * max_lr
     if i < warmup_iters: # Linear warmup for warmup_iters
         return max_lr * (i + 1) / warmup_iters
 

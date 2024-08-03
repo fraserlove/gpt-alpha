@@ -1,9 +1,9 @@
 """
 GPT (byte-level) Byte Pair Encoding (BPE) Tokeniser.
 
-Based off the gpt2 and cl100k_base encodings from TikToken. Handles special tokens and
-the regular expression splitting pattern for GPT-2 and GPT-4. The API is designed to be
-identical to the TikToken tokeniser.
+Based off the gpt2 and cl100k_base encodings from TikToken and minbpe by Andrej Karpathy.
+Handles special tokens and the regular expression splitting pattern for GPT-2 and GPT-4.
+The API is designed to be identical to the TikToken tokeniser.
 
 Run this script to train a new tokeniser on the first 10,000 texts in fineweb-edu to
 generate a vocabulary of 50,257 tokens (50,000 BPE + 256 Byte tokens + <|endoftext|>
@@ -15,6 +15,8 @@ References
 https://github.com/openai/gpt-2/blob/master/src/encoder.py
 2) TikToken:
 https://github.com/openai/tiktoken
+3) MinBPE:
+https://github.com/karpathy/minbpe/tree/master
 """
 
 import datasets
