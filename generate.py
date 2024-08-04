@@ -42,8 +42,10 @@ model.eval()
 print(f'loaded checkpoint {ckpt_file} with val loss {ckpt["val_loss"]:.2f}')
 
 # Generate samples from the model
-context = 'Once upon a time,'
+context = '''
+Once upon a time,
+'''
 context = torch.tensor(tokeniser.encode(context), dtype=torch.long).to(device)
 samples = model.generate(context, n_samples=n_samples, max_tokens=max_tokens, temp=temp, top_k=top_k)
 samples = [samples[j, :].tolist() for j in range(n_samples)]
-print('\n'.join(tokeniser.decode(sample) for sample in samples))
+print('\n'.join(tokeniser.decode(sample).split('<|endoftext|>')[0] for sample in samples))
