@@ -1,19 +1,21 @@
 # GPT
 A full implementation of a Generative Pre-trained Transformer (GPT) model following the architecture of OpenAI's [GPT-2](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) and [GPT-3](https://arxiv.org/abs/2005.14165) models as well as [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy. The model is implemented in PyTorch and supports both single-GPU and multi-GPU training. The model is trained on the 10B token subset of [fineweb-edu](https://arxiv.org/pdf/2406.17557), a large-scale dataset of educational content.
 
-The model surpasses GPT-2 124M on [HellaSwag](https://arxiv.org/pdf/1905.07830) after just 5B tokens. This is a 20x improvement over GPT-2 124M, which was trained on 100B tokens. It is expected that with enough training (~45B tokens), the model will surpass GPT-3 125M, which was trained on 300B tokens. Training the 124M model for 1 epoch of the 10B fineweb-edu subset took ~3 hours on 8x A100-SMX4 40GB GPUs. A batch size of 32 was used.
+The model surpasses GPT-2 124M on [HellaSwag](https://arxiv.org/pdf/1905.07830) after just 5B tokens and surpasses GPT-3 125M after 38B tokens. This is a 20x improvement over GPT-2 124M and 7.8x improvement over GPT-3, which were trained on 100B tokens and 300B tokens respectively. Training the model for 1 epoch of the 10B fineweb-edu subset, with a batch size of 16, took ~3.5 hours on 8x A100-SMX4 40GB GPUs.
 
-![Alt text](assets/124M_25B_loss.png)
-![Alt text](assets/124M_25B_hs.png)
+![Alt text](assets/124M_40B_loss.png)
+![Alt text](assets/124M_40B_hs.png)
 
-Here are some example completions from the 124M model after training on 25B tokens. The context is *`Once upon a time,'*. The completions are generated using the top-k sampling strategy with a maximum length of 64 tokens, a temperature of 1.0 and a k value of 50.
+Here are some example completions from the 124M model after training on 40B tokens. The context is *`Once upon a time,'*. The completions are generated using the top-k sampling strategy with a maximum length of 64 tokens, a temperature of 1.0 and a k value of 50.
 
 ```
-Once upon a time, the world of physics would not have been the same as it is today if these laws were different. The entire field of science is based upon these laws (the laws of mathematics), which are, in fact only a partial explanation of reality
+Once upon a time, people were going to buy the “cork” that was used to wrap and hang the wine.
+However, what began to be called “cork” as soon as the time rolled around was probably an artificial wine. This is how we know cork as the “cork”
 
-Once upon a time, the Earth had six moons. These moons, they had in their formation in an internal "ring" which they had spun with the rotating Earth to form Mercury, the four of which orbited the Sun until they finally did return to the Earth in 1989.
+Once upon a time, there was a time in the history of India when the great religion of India was worshipped by only two people… the Hindus and the Jains. This is the story of how the story of India was created.
+India’s story begins with a very ancient Vedic religion. They were the ancient Indus valley
 
-Once upon a time, a person would need to know to do something right. This can lead to stress. People have developed an inbuilt habit in their lives to know the right way to act or behave in any situation. When it comes to things that they know it might 
+Once upon a time, the King of Italy, who was to govern what would become the world, thought that it would be a great and noble undertaking to introduce the Roman Senate into the country in order to defend Rome — to defend her own capital in a very civilized manner, to promote the arts and promote the Roman religion. Accordingly, Rome,
 ```
 
 ## Installation and Usage
