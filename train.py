@@ -46,7 +46,7 @@ tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 # 19073 iterations. The vocabulary size is rounded up to the nearest multiple of 128, which is
 # 50304, for efficiency. The model is trained for 4.5 epochs, which corresponds to 4.5 *
 # 19073 = 85829 iterations to surpass the performance of GPT-3 125M on the HellaSwag dataset.
-# Batch sizes of 32/64 are sufficient to fit a 124M model on a single GPU with 40GB / 80GB of
+# Batch sizes of 32 / 64 are sufficient to fit a 124M model on a single GPU with 40GB / 80GB of
 # memory repsecitvely (if a block size of 1024 is used).
 # --------------------------------------------------------------------------------------------
 batch_size = 64
