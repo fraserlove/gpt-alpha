@@ -1,8 +1,8 @@
 """
 Training script for GPT model on the fineweb_edu_10B dataset.
 
-Training can be run both on a single gpu and also in a larger multi-GPU training run
-with distributed data parallel (DDP).
+Training can be run on a single GPU or in a multi-GPU setup within a single node using
+Distributed Data Parallel (DDP).
 
 Tiktoken is the default tokeniser, however, a custom tokeniser can be used by replacing
 tiktoken.get_encoding('gpt2') with GPTTokeniser('gpt.tkn'). The fineweb-edu dataset
