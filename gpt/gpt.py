@@ -12,6 +12,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dataclasses import dataclass
+from huggingface_hub import PyTorchModelHubMixin
 
 @dataclass
 class GPTConfig:
@@ -88,7 +89,7 @@ class Block(nn.Module):
         x = x + self.mlp(self.ln_2(x))
         return x
 
-class GPT(nn.Module):
+class GPT(nn.Module, PyTorchModelHubMixin):
     """A GPT model."""
     
     def __init__(self, config: GPTConfig):

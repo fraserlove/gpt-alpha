@@ -209,6 +209,7 @@ while i < max_iters:
         if loss_acc < best_val_loss and master_process:
             best_val_loss = loss_acc
             checkpoint(log_dir, raw_model, n_params, i, loss_acc)
+            model.save_pretrained('cache/models')
             if master_process:
                 print('saved checkpoint')
                 with open(log_file, 'a') as f:

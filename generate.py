@@ -4,6 +4,10 @@ Generate from a trained GPT model.
 Tiktoken is the default tokeniser, however, a custom tokeniser can be used by replacing
 tiktoken.get_encoding('gpt2') with GPTTokeniser('gpt.tkn'). The tokeniser must be
 the same as the one used during training.
+
+The model can alternatively be loaded from the Hugging Face model hub using
+GPT.from_pretrained('fraserlove/gpt') or GPT.from_pretrained('cache/models') if cached
+locally during training.
 """
 
 import os
@@ -40,6 +44,11 @@ model = GPT(ckpt['config']).to(device)
 model.load_state_dict(ckpt['model'])
 model.eval()
 print(f'loaded checkpoint {ckpt_file} with val loss {ckpt["val_loss"]:.2f}')
+
+# Alternatively, load the model from the Hugging Face model hub or the local cache
+# model = GPT.from_pretrained('fraserlove/gpt') # or GPT.from_pretrained('cache/models')
+# model = model.to(device)
+# model.eval()
 
 # Generate samples from the model
 context = '''
