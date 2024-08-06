@@ -1,5 +1,5 @@
 # Cache directory
-cache/logs/
+cache/
 
 # PyTorch model checkpoints
 *.pt

@@ -36,14 +36,13 @@ print(f'{device}')
 tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 
 # Load the checkpoint
-ckpt_path = os.path.join(log_dir, ckpt_file)
-ckpt = torch.load(ckpt_path, map_location=device)
+ckpt = torch.load('cache/logs/124M.pt', map_location=device)
 # Load the model and move it to the device
 model = GPT(ckpt['config']).to(device)
 # Load the saved model state
 model.load_state_dict(ckpt['model'])
 model.eval()
-print(f'loaded checkpoint {ckpt_file} with val loss {ckpt["val_loss"]:.2f}')
+print(f'loaded checkpoint with val loss {ckpt["val_loss"]:.2f}')
 
 # Alternatively, load the model from the Hugging Face model hub or the local cache
 # model = GPT.from_pretrained('fraserlove/gpt') # or GPT.from_pretrained('cache/models')
