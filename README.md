@@ -1,10 +1,3 @@
----
-license: mit
-datasets:
-- HuggingFaceFW/fineweb-edu
-language:
-- en
----
 # GPT
 A full implementation of a Generative Pre-trained Transformer (GPT) model following the architecture of OpenAI's [GPT-2](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) and [GPT-3](https://arxiv.org/abs/2005.14165) models as well as [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy. The model is implemented in PyTorch and supports both single-GPU and multi-GPU training. The model is trained on the 10B token subset of [fineweb-edu](https://arxiv.org/pdf/2406.17557), a large-scale dataset of educational content. The model can be found on the Hugging Face Model Hub [here](https://huggingface.co/fraserlove/gpt).
 
@@ -70,7 +63,7 @@ where `n_gpus` is the number of GPUs to use in training.
 Analysis of the GPT model can be performed using the `eval.ipynb` notebook. The notebook contains code to plot the loss trajectory of the model, as well as the HellaSwag evaluation results.
 
 ### Inference
-The GPT model can be used for inference using the `inference.py` script. The script generates completions given a context. The completions are generated using the top-k sampling strategy. The maximum length of the completions, temperature and k value can be set in the script. The model can be loaded from a PyTorch checkpoint `torch.load('cache/logs/124M.pt', map_location=device)`, from a cached Hugging Face model directory `GPT.from_pretrained('cache/models')` or from the Hugging Face Model Hub `GPT.from_pretrained('fraserlove/gpt')`. The model can then be used for inference as follows:
+The GPT model can be used for inference using the `inference.py` script. The script generates completions given a context. The completions are generated using the top-k sampling strategy. The maximum length of the completions, temperature and k value can be set in the script. The model can be loaded from a PyTorch checkpoint `torch.load('cache/logs/124M.pt', map_location=device)` or from a cached Hugging Face model `GPT.from_pretrained('cache/models')` after training. The model can then be used for inference as follows:
 ```python
 context = 'Once upon a time,'
 context = torch.tensor(tokeniser.encode(context), dtype=torch.long).to(device)

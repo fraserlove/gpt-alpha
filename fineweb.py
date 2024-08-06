@@ -9,18 +9,16 @@ import datasets
 import multiprocessing
 import numpy as np
 
-local_dir = 'cache/fineweb_edu_10B' # Local directory to save the dataset
-remote_name = 'sample-10BT' # Dataset name on Hugging Face
 shard_size = int(1e8) # 100M tokens per shard, total of 100 shards
 
-# Create the local directory if it doesn't exist
-CACHE_DIR = os.path.join(os.path.dirname(__file__), local_dir)
+# Create the cache directory for fineweb if it doesn't exist
+CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache/fineweb_edu_10B')
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 
-# Download the dataset from Hugging Face
-dataset = datasets.load_dataset('HuggingFaceFW/fineweb-edu', name=remote_name, split='train')
+# Download the 10B FineWeb-Edu dataset from Hugging Face
+dataset = datasets.load_dataset('HuggingFaceFW/fineweb-edu', name='sample-10BT', split='train')
 
 def tokenise(doc: dict) -> np.ndarray:
     """Tokenise a document."""

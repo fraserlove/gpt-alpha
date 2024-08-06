@@ -37,6 +37,10 @@ torch.set_float32_matmul_precision('high')
 # Load the GPT-2 tokeniser
 tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 
+# Create the cache directory if it doesn't exist
+CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache/')
+os.makedirs(CACHE_DIR, exist_ok=True)
+
 # ----------------------- Default training parameters for GPT-3 124M -------------------------
 # The total batch size is the number of tokens to process in a single iteration before a gradient
 # update, for GPT-2 / GPT-3 this is 2^19 = ~0.5M tokens. A cosine learning rate schedule is used,
@@ -60,15 +64,14 @@ max_iters = 85829
 # Evaluation is performed every 250 iterations on 20 batches of the validation set and the 
 # HellaSwag dataset. During evaluation, the model also generates 2 text samples of length 64
 # tokens per GPU. Training checkpoints are saved if the validation loss is the best so far and
-# stored in the 'cache/logs' directory alongside the training logs. The checkpoint file can be
+# stored in the 'cache/' directory alongside the training logs. The checkpoint file can be
 # set to resume training from a previous checkpoint. This checkpoint must be present in the
-# 'cache/logs' directory with the .pt extension.
+# 'cache/' directory with the .pt extension.
 # --------------------------------------------------------------------------------------------
 eval_delta = 150
 n_samples = 2
 max_tokens = 64
 val_iters = 20
-log_dir = 'cache/logs'
 ckpt_file = None
 
 # ------------------------- Distributed Data Parallel (DDP) ----------------------------------
@@ -112,15 +115,9 @@ def abbr_size(i: int) -> str:
             return f'{i:.3g}{unit}'
         i /= 1000
 
-def create_logs(log_dir: str, n_params: int) -> str:
-    """Create a log directory for the model."""
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, f'{abbr_size(n_params)}.txt')
-    return log_file
-
-def checkpoint(log_dir: str, model: GPT, n_params: int, i: int, loss_acc: torch.Tensor) -> None:
+def checkpoint(model: GPT, n_params: int, i: int, loss_acc: torch.Tensor) -> None:
     """Save the model checkpoint."""
-    ckpt_path = os.path.join(log_dir, f'{abbr_size(n_params)}.pt')
+    ckpt_path = os.path.join(CACHE_DIR, f'{abbr_size(n_params)}.pt')
     ckpt = {
         'model': model.state_dict(),
         'optimiser': optimiser.state_dict(),
@@ -131,7 +128,7 @@ def checkpoint(log_dir: str, model: GPT, n_params: int, i: int, loss_acc: torch.
     torch.save(ckpt, ckpt_path)
 
 if ckpt_file:
-    ckpt_path = os.path.join(log_dir, ckpt_file)
+    ckpt_path = os.path.join(CACHE_DIR, ckpt_file)
     ckpt = torch.load(ckpt_path, map_location=device)
     model = GPT(ckpt['config'])
     model.load_state_dict(ckpt['model'])
@@ -160,8 +157,8 @@ ckpt = None # Free up memory
 n_params = sum(param.numel() for param in model.parameters())
 if master_process:
     print(f'model size: {abbr_size(n_params)}')
-# Create a log for the model
-log_file = create_logs(log_dir, n_params)
+# Create a log file for the model
+log_file = os.path.join(CACHE_DIR, f'{abbr_size(n_params)}.txt')
 
 # Gradient accumulation is used to increase the effective batch size for training. The gradient
 # accumulation iterations is the number of itetations to process before a gradient update. The
@@ -208,8 +205,7 @@ while i < max_iters:
         # Save the model checkpoint if the validation loss is the best so far
         if loss_acc < best_val_loss and master_process:
             best_val_loss = loss_acc
-            checkpoint(log_dir, raw_model, n_params, i, loss_acc)
-            model.save_pretrained('cache/models')
+            checkpoint(raw_model, n_params, i, loss_acc)
             if master_process:
                 print('saved checkpoint')
                 with open(log_file, 'a') as f:
@@ -297,3 +293,8 @@ while i < max_iters:
 
 if ddp:
     dist.destroy_process_group()
+
+# Save the final model checkpoint
+ckpt = torch.load('cache/124M.pt', map_location=device)
+model = GPT(ckpt['config'])
+model.save_pretrained('cache/')

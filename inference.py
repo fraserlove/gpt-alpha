@@ -4,13 +4,8 @@ Generate from a trained GPT model.
 Tiktoken is the default tokeniser, however, a custom tokeniser can be used by replacing
 tiktoken.get_encoding('gpt2') with GPTTokeniser('gpt.tkn'). The tokeniser must be
 the same as the one used during training.
-
-The model can alternatively be loaded from the Hugging Face model hub using
-GPT.from_pretrained('fraserlove/gpt') or GPT.from_pretrained('cache/models') if cached
-locally during training.
 """
 
-import os
 import tiktoken
 import torch
 
@@ -25,8 +20,6 @@ max_tokens = 64
 n_samples = 2
 temp = 1.0
 top_k = 50
-ckpt_file = '124M.pt'
-log_dir = 'cache/logs'
 
 # Use GPU if available
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -36,18 +29,16 @@ print(f'{device}')
 tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 
 # Load the checkpoint
-ckpt = torch.load('cache/logs/124M.pt', map_location=device)
+ckpt = torch.load('cache/124M.pt', map_location=device)
 # Load the model and move it to the device
 model = GPT(ckpt['config']).to(device)
 # Load the saved model state
 model.load_state_dict(ckpt['model'])
 model.eval()
-print(f'loaded checkpoint with val loss {ckpt["val_loss"]:.2f}')
+print(f'checkpoint loaded')
 
-# Alternatively, load the model from the Hugging Face model hub or the local cache
-# model = GPT.from_pretrained('fraserlove/gpt') # or GPT.from_pretrained('cache/models')
-# model = model.to(device)
-# model.eval()
+# Alternatively, load the Hugging Face model from the local cache
+# model = GPT.from_pretrained('cache/').to(device)
 
 # Generate samples from the model
 context = '''

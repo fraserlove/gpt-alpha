@@ -17,10 +17,8 @@ import requests
 import torch
 import torch.nn.functional as F
 
-local_dir = 'cache/hellaswag' # Local directory to save the dataset
-
-# Create the local directory if it doesn't exist
-CACHE_DIR = os.path.join(os.path.dirname(__file__), local_dir)
+# Create the cache directory for hellaswag if it doesn't exist
+CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache/hellaswag')
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
