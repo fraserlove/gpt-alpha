@@ -3,4 +3,4 @@ numpy
 regex
 datasets
 tiktoken
-huggingface-hub
+transformers

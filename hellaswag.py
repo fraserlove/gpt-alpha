@@ -141,14 +141,14 @@ def evaluate(model_type, device):
             for i, end in enumerate(example['endings']):
                 print(f' ({i}) {end}' + (' (P)' if i == label else '') + (' (A)' if i == pred else ''))
 
-    print(f'{model_type} acc: {n_correct / n_total:.4f}')
+    print(f'{model_type} acc: {(n_correct / n_total):.4f}')
 
 if __name__ == '__main__':
     # For HuggingFace GPT-2 model evaluation - pip install transformers
     from transformers import GPT2LMHeadModel
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--model_type', type=str, default='gpt2', help='gpt2, gpt2-medium, gpt2-large, gpt2-xl')
+    parser.add_argument('-m', '--model_type', type=str, default='gpt2', help='HuggingFace GPT-2 model')
     args = parser.parse_args()
 
     torch.set_float32_matmul_precision('high') # Use tensor cores for matmul
