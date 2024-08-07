@@ -144,7 +144,8 @@ def evaluate(model_type, device):
     print(f'{model_type} acc: {(n_correct / n_total):.4f}')
 
 if __name__ == '__main__':
-    # For HuggingFace GPT-2 model evaluation - pip install transformers
+    # Evaluate any HF GPT-2 model on the HellaSwag validation set
+    # python hellaswag.py -m gpt2
     from transformers import GPT2LMHeadModel
 
     parser = argparse.ArgumentParser()
