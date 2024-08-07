@@ -37,13 +37,8 @@ model.load_state_dict(ckpt['model'])
 model.eval()
 print(f'checkpoint loaded')
 
-# Alternatively, load the Hugging Face model from the local cache
-# model = GPT.from_pretrained('cache/').to(device)
-
 # Generate samples from the model
-context = '''
-Once upon a time,
-'''
+context = 'Once upon a time,'
 context = torch.tensor(tokeniser.encode(context), dtype=torch.long).to(device)
 samples = model.generate(context, n_samples=n_samples, max_tokens=max_tokens, temp=temp, top_k=top_k)
 samples = [samples[j, :].tolist() for j in range(n_samples)]

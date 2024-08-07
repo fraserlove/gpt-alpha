@@ -294,7 +294,7 @@ while i < max_iters:
 if ddp:
     dist.destroy_process_group()
 
-# Save the final model checkpoint
+# Save the final model checkpoint as a model file
 ckpt = torch.load('cache/124M.pt', map_location=device)
 model = GPT(ckpt['config'])
 model.save_pretrained('cache/')

@@ -63,11 +63,4 @@ where `n_gpus` is the number of GPUs to use in training.
 Analysis of the GPT model can be performed using the `eval.ipynb` notebook. The notebook contains code to plot the loss trajectory of the model, as well as the HellaSwag evaluation results.
 
 ### Inference
-The GPT model can be used for inference using the `inference.py` script. The script generates completions given a context. The completions are generated using the top-k sampling strategy. The maximum length of the completions, temperature and k value can be set in the script. The model can be loaded from a PyTorch checkpoint `torch.load('cache/logs/124M.pt', map_location=device)` or from a cached Hugging Face model `GPT.from_pretrained('cache/models')` after training. The model can then be used for inference as follows:
-```python
-context = 'Once upon a time,'
-context = torch.tensor(tokeniser.encode(context), dtype=torch.long).to(device)
-samples = model.generate(context, n_samples=n_samples, max_tokens=max_tokens, temp=temp, top_k=top_k)
-samples = [samples[j, :].tolist() for j in range(n_samples)]
-print('\n'.join(tokeniser.decode(sample).split('<|endoftext|>')[0] for sample in samples))
-```
+The GPT model can be used for inference using the `inference.py` script. The script generates completions given a context. The completions are generated using the top-k sampling strategy. The maximum length of the completions, temperature and k value can be set in the script. Alternatively, the model is available on the Hugging Face Model Hub [here](https://huggingface.co/fraserlove/gpt-124M) for use in the Hugging Face Transformers library.

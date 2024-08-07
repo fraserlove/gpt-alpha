@@ -12,7 +12,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dataclasses import dataclass
-from huggingface_hub import PyTorchModelHubMixin
 
 @dataclass
 class GPTConfig:
@@ -89,7 +88,7 @@ class Block(nn.Module):
         x = x + self.mlp(self.ln_2(x))
         return x
 
-class GPT(nn.Module, PyTorchModelHubMixin):
+class GPT(nn.Module):
     """A GPT model."""
     
     def __init__(self, config: GPTConfig):
@@ -181,3 +180,87 @@ class GPT(nn.Module, PyTorchModelHubMixin):
             # Concatenate sampled token to the sequence
             x = torch.cat((x, x_next), dim=1)
         return x
+    
+    @classmethod
+    def from_pretrained(cls, path:str):
+        """Load the model weights from a Hugging Face GPT-2 file."""
+        from transformers import GPT2LMHeadModel
+
+        # Create a new GPT model
+        config = GPTConfig()
+        model = GPT(config)
+        sd = model.state_dict()
+        sd_keys = sd.keys()
+        # Ignore attention bias as is just a buffer for autoregressive mask
+        sd_keys = [k for k in sd_keys if not k.endswith('.attn.bias')]
+
+        # Load the Hugging Face GPT-2 model
+        model_hf = GPT2LMHeadModel.from_pretrained(path)
+        sd_hf = model_hf.state_dict()
+        # Copy the weights from the Hugging Face model to the custom model
+        sd_keys_hf = sd_hf.keys()
+        # Ignore attention bias as is just a buffer for autoregressive mask
+        sd_keys_hf = [k for k in sd_keys_hf if not k.endswith('.attn.masked_bias')]
+        sd_keys_hf = [k for k in sd_keys_hf if not k.endswith('.attn.bias')]
+        assert len(sd_keys_hf) == len(sd_keys), f'mismatched keys: {sd_keys_hf} vs {sd_keys}'
+
+        # Some weights need to be transposed when copying from the HF model
+        transposed = ['attn.c_attn.weight', 'attn.c_proj.weight', 'mlp.c_fc.weight', 'mlp.c_proj.weight']
+        for k in sd_keys_hf:
+            if any(k.endswith(w) for w in transposed):
+                assert sd_hf[k].shape[::-1] == sd[k].shape
+                with torch.no_grad():
+                    sd[k].copy_(sd_hf[k].t())
+            else:
+                assert sd_hf[k].shape == sd[k].shape
+                with torch.no_grad():
+                    sd[k].copy_(sd_hf[k])
+        return model
+    
+    def save_pretrained(self, path: str):
+        """Save the model weights to a HF GPT-2 file."""
+        from transformers import GPT2LMHeadModel, GPT2Config
+
+        # Create a new HuggingFace model
+        hf_config = GPT2Config(
+            vocab_size = 50257,
+            n_positions = self.config.block_size,
+            n_ctx = self.config.block_size,
+            n_embd = self.config.n_embd,
+            n_layer = self.config.n_layer,
+            n_head = self.config.n_head)
+        model_hf = GPT2LMHeadModel(hf_config)
+        sd_hf = model_hf.state_dict()
+        sd_keys_hf = sd_hf.keys()
+        # Ignore attention bias as is just a buffer for autoregressive mask
+        sd_keys_hf = [k for k in sd_keys_hf if not k.endswith('.attn.bias')]
+
+        # Load the custom models weights
+        sd = self.state_dict()
+        # Copy the weights from the custom model to the HuggingFace model
+        sd_keys = sd.keys()
+        # Ignore attention bias as is just a buffer for autoregressive mask
+        sd_keys = [k for k in sd_keys if not k.endswith('.attn.masked_bias')]
+        sd_keys = [k for k in sd_keys if not k.endswith('.attn.bias')]
+        assert len(sd_keys) == len(sd_keys_hf), f'mismatched keys: {sd_keys} vs {sd_keys_hf}'
+        
+        # Copy the tensor, transposing if necessary
+        transposed = ['attn.c_attn.weight', 'attn.c_proj.weight', 'mlp.c_fc.weight', 'mlp.c_proj.weight']
+        for k in sd_keys:
+            # Resize the embedding and output layers
+            if k == 'transformer.wte.weight' or k == 'lm_head.weight':
+                with torch.no_grad():
+                    sd_hf[k].copy_(sd[k][:50257, :])
+            elif any(k.endswith(w) for w in transposed):
+                assert sd[k].shape[::-1] == sd_hf[k].shape
+                with torch.no_grad():
+                    sd_hf[k].copy_(sd[k].t())
+            else:
+                assert sd[k].shape == sd_hf[k].shape
+                with torch.no_grad():
+                    sd_hf[k].copy_(sd[k])
+        
+        # Load the mapped state dict into the HuggingFace model
+        model_hf.load_state_dict(sd_hf)
+        # Save the model
+        model_hf.save_pretrained(path)
