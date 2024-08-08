@@ -1,5 +1,5 @@
 """
-Training script for GPT model on the fineweb_edu_10B dataset.
+Training script for GPT-alpha on the fineweb_edu_10B dataset.
 
 Training can be run on a single GPU or in a multi-GPU setup within a single node using
 Distributed Data Parallel (DDP).
