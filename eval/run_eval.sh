@@ -1,0 +1,43 @@
+# LLM Evaluation Script
+
+# ./run_eval.sh {hf_user/hf_model1} {hf_user/hf_model2} ... {hf_user/hf_modelN}
+
+# First download Eleuther LM evaluation harness
+# git clone https://github.com/EleutherAI/lm-evaluation-harness/
+# cd lm-evaluation-harness
+# git checkout 0571eeb14d4e48aac51956a726c62cd8b382b3d8
+# pip install -e .
+# cd ..
+
+if [ $# -eq 0 ]; then
+    echo "Error: missing HuggingFace model(s)"
+    echo "Usage: ./run_eval.sh {hf_user/hf_model1} {hf_user/hf_model2} ... {hf_user/hf_modelN}"
+    exit 1
+fi
+
+for MODEL in "$@"; do
+    echo "Evaluating model $MODEL"
+
+    # CommonSenseQA
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks commonsense_qa --output_path "commonsenseqa_0shot"
+    # PIQA
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks piqa --output_path "piqa_0shot"
+    # OpenBookQA
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks openbookqa --output_path "openbookqa_0shot"
+    # TriviaQA
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks triviaqa --output_path "triviaqa_0shot"
+    # TruthfulQA
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks truthfulqa_mc1,truthfulqa_mc2 --output_path "truthfulqa_0shot"
+    # MMLU
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks mmlu --output_path "mmlu_5shot" --num_fewshot 5
+    # WinoGrande
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks winogrande --output_path "winogrande_5shot" --num_fewshot 5
+    # Arc Challange
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks arc_challenge --output_path "arc_challenge_25shot" --num_fewshot 25
+    # HellaSwag
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks hellaswag --output_path "hellaswag_10shot" --num_fewshot 10
+    # GSM-8K
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks gsm8k --output_path "gsm8k_5shot" --num_fewshot 5
+
+    python eval_results.py "$MODEL"
+done

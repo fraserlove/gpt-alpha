@@ -20,7 +20,7 @@ print('-' * 35)
 for test in list(tests.keys()):
     try:
         # Find any JSON file in the specified directory
-        search_pattern = os.path.join('eval', test, model, '*.json')
+        search_pattern = os.path.join(test, model, '*.json')
         result_files = glob.glob(search_pattern)
         if not result_files:
             raise FileNotFoundError(f"No results files found for pattern: {search_pattern}")
@@ -28,10 +28,10 @@ for test in list(tests.keys()):
         with open(result_files[0]) as f:
             data = json.load(f)
     except FileNotFoundError:
-        print(f'File not found: eval/{test}/{model}')
+        print(f'File not found: {test}/{model}')
         continue
     except json.JSONDecodeError:
-        print(f'Error decoding JSON in file: eval/{test}/{model}')
+        print(f'Error decoding JSON in file: {test}/{model}')
         continue
 
     r_count = 0
