@@ -58,9 +58,25 @@ torchrun --standalone --nproc_per_node={n_gpus} train.py
 where `n_gpus` is the number of GPUs to use in training.
 
 ### Evaluation
-[HellaSwag](https://arxiv.org/pdf/1905.07830) is used to evaluate the GPT model. To evaluate any GPT-2 model on the HellaSwag dataset, run the `hellaswag.py` script.
+During training [HellaSwag](https://arxiv.org/pdf/1905.07830) is used to evaluate the GPT model. To evaluate any model from HuggingFace on the HellaSwag dataset, run the `hellaswag.py` script:
+```bash
+python hellaswag.py -m {hf_user}/{hf_model}
+```
+Analysis of training the model, including plots of the loss trajectory and HellaSwag score throughout training, is performed
+within `eval.ipynb`.
 
-Analysis of the GPT model can be performed using the `eval.ipynb` notebook. The notebook contains code to plot the loss trajectory of the model, as well as the HellaSwag evaluation results.
+A full evaluation can be performed by running the [Eleuther LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness). In order to run the evaluation harness the model must be exported to a HuggingFace transformer model. This is achieved via the `save_pretrained()` method within GPT which saves the model weights to a HuggingFace GPT-2 model, transposing the relevant tensors. For example, `attn.c_proj.weight` must be transposed because it was initially used as weights withing a Conv1D module rather than a Linear module. This has already been done and the model is avaliable on HuggingFace Hub [here](https://huggingface.co/fraserlove/gpt-124m). Now download the Eleuther LM Evaluation Harness to perform evaluation on this model. Run the following to download and install it.
+```
+git clone https://github.com/EleutherAI/lm-evaluation-harness/
+cd lm-evaluation-harness
+git checkout 0571eeb14d4e48aac51956a726c62cd8b382b3d8
+pip install -e .
+```
+Then the evaluation script, which contains code to run various evaluation tasks on a HuggingFace model, can be invoked with:
+```
+./run_eval.sh {hf_user}/{hf_model}
+```
+Specifically to run evaluation on this model, run `./run_eval.sh fraserlove/gpt-124`. This script will write evaluation json objects to `./lm-evaluation-harness/results/` and will finish by printing the evaluation results using `python eval_results.py fraserlove/gpt-124`. This script can be rerun to display these results at any time. Evaluation usually takes roughly an hour to run.
 
 ### Inference
-The GPT model can be used for inference using the `inference.py` script. The script generates completions given a context. The completions are generated using the top-k sampling strategy. The maximum length of the completions, temperature and k value can be set in the script. Alternatively, the model is available on the Hugging Face Model Hub [here](https://huggingface.co/fraserlove/gpt-124M) for use in the Hugging Face Transformers library.
+The GPT model can be used for inference using the `inference.py` script. The script generates completions given a context. The completions are generated using the top-k sampling strategy. The maximum length of the completions, temperature and k value can be set in the script. Alternatively, the model is available on the Hugging Face Model Hub [here](https://huggingface.co/fraserlove/gpt-124M) for use in the Hugging Face Transformers library allows inference to be performed in three lines of code.

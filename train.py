@@ -161,7 +161,7 @@ if master_process:
 log_file = os.path.join(CACHE_DIR, f'{abbr_size(n_params)}.txt')
 
 # Gradient accumulation is used to increase the effective batch size for training. The gradient
-# accumulation iterations is the number of itetations to process before a gradient update. The
+# accumulation iterations is the number of iterations to process before a gradient update. The
 # total batch size must be divisible by the product of the batch size, block size, and number of
 # GPUs (ddp_world_size) for gradient accumulation to work correctly.
 block_size = raw_model.config.block_size
