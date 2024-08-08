@@ -3,16 +3,16 @@ import json, sys, os, glob
 model = '__'.join(sys.argv[1].split('/'))
 
 tests = {
-    "commonsenseqa_0shot": "acc,none",
-    "piqa_0shot": "acc_norm,none",
-    "openbookqa_0shot": "acc_norm,none",
-    "triviaqa_0shot": "exact_match,remove_whitespace",
-    "truthfulqa_0shot": "acc,none",
-    "mmlu_5shot": "acc,none",
-    "winogrande_5shot": "acc,none",
-    "arc_challenge_25shot": "acc_norm,none",
-    "hellaswag_10shot": "acc_norm,none",
-    "gsm8k_5shot": "exact_match,flexible-extract",
+    'commonsenseqa_0shot': 'acc,none',
+    'piqa_0shot': 'acc_norm,none',
+    'openbookqa_0shot': 'acc_norm,none',
+    'triviaqa_0shot': 'exact_match,remove_whitespace',
+    'truthfulqa_0shot': 'acc,none',
+    'mmlu_5shot': 'acc,none',
+    'winogrande_5shot': 'acc,none',
+    'arc_challenge_25shot': 'acc_norm,none',
+    'hellaswag_10shot': 'acc_norm,none',
+    'gsm8k_5shot': 'exact_match,flexible-extract',
 }
 
 total = 0
@@ -23,7 +23,7 @@ for test in list(tests.keys()):
         search_pattern = os.path.join(test, model, '*.json')
         result_files = glob.glob(search_pattern)
         if not result_files:
-            raise FileNotFoundError(f"No results files found for pattern: {search_pattern}")
+            raise FileNotFoundError(f'No results files found for pattern: {search_pattern}')
         
         with open(result_files[0]) as f:
             data = json.load(f)
