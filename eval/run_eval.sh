@@ -20,28 +20,26 @@ MODELS=""
 for MODEL in "$@"; do
     echo "Evaluating model $MODEL"
 
-    # SIQA
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks social_iqa --output_path "siqa_0shot" --trust_remote_code
-    # CommonSenseQA
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks commonsense_qa --output_path "commonsenseqa_0shot"
     # PIQA
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks piqa --output_path "piqa_0shot"
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks piqa --output_path "piqa_0shot"
+    # SIQA
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks social_iqa --output_path "siqa_0shot" --trust_remote_code
     # OpenBookQA
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks openbookqa --output_path "openbookqa_0shot"
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks openbookqa --output_path "openbookqa_0shot"
     # TriviaQA
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks triviaqa --output_path "triviaqa_0shot"
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks triviaqa --output_path "triviaqa_0shot"
     # TruthfulQA
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks truthfulqa_mc1,truthfulqa_mc2 --output_path "truthfulqa_0shot"
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks truthfulqa_mc1,truthfulqa_mc2 --output_path "truthfulqa_0shot"
     # MMLU
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks mmlu --output_path "mmlu_5shot" --num_fewshot 5
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks mmlu --output_path "mmlu_5shot" --num_fewshot 5
     # WinoGrande
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks winogrande --output_path "winogrande_5shot" --num_fewshot 5
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks winogrande --output_path "winogrande_5shot" --num_fewshot 5
     # Arc Challange
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks arc_challenge --output_path "arc_challenge_25shot" --num_fewshot 25
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks arc_challenge --output_path "arc_challenge_25shot" --num_fewshot 25
     # HellaSwag
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks hellaswag --output_path "hellaswag_10shot" --num_fewshot 10
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks hellaswag --output_path "hellaswag_10shot" --num_fewshot 10
     # GSM-8K
-    #lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks gsm8k --output_path "gsm8k_5shot" --num_fewshot 5
+    lm_eval --model hf --model_args pretrained=$MODEL --batch_size 8 --device cuda --tasks gsm8k --output_path "gsm8k_5shot" --num_fewshot 5
 
     MODELS="$MODELS $MODEL"
 done

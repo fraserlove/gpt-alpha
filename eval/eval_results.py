@@ -4,7 +4,6 @@ from tabulate import tabulate
 models = ['__'.join(model.split('/')) for model in sys.argv[1:]]
 
 tests = {
-    'commonsenseqa_0shot': 'acc,none',
     'piqa_0shot': 'acc_norm,none',
     'siqa_0shot': 'acc,none',
     'openbookqa_0shot': 'acc_norm,none',
