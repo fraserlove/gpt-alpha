@@ -3,4 +3,5 @@ numpy
 regex
 datasets
 tiktoken
+tabulate
 transformers

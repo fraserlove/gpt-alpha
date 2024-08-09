@@ -64,4 +64,4 @@ headers = ['Benchmark'] + [model.split('__')[1] if '__' in model else model for 
 table_data = [[test] + scores for test, scores in results.items()]
 
 # Display the results table
-print(tabulate(table_data, headers=headers, tablefmt='github', floatfmt='.2f'))
+print(tabulate(table_data, headers=headers, tablefmt='pretty'))
