@@ -77,7 +77,27 @@ Then the evaluation script, which contains code to run various evaluation tasks 
 cd eval/
 ./run_eval.sh {hf_user/hf_model1} {hf_user/hf_model2} ... {hf_user/hf_modelN}
 ```
-Specifically to perform evaluation on this model, run `./run_eval.sh fraserlove/gpt-alpha` within the `eval/` directory. This script will write evaluation json objects under the evaluation folder and will finish by printing the evaluation results using `python eval_results.py fraserlove/gpt-alpha`. This script can be rerun from within `eval/` to display these results at any time. Evaluation usually takes roughly an hour to run per model.
+Specifically to perform evaluation on this model, run `./run_eval.sh fraserlove/gpt-alpha` within the `eval/` directory. This script will write evaluation json objects under the evaluation folder and will finish by printing the evaluation results using `python eval_results.py fraserlove/gpt-alpha`. This script can be rerun from within `eval/` to display these results at any time. Evaluation usually takes roughly an hour to run per model. Below is an example output from evaluation with `./run_eval.sh ./run_eval.sh fraserlove/gpt-alpha gpt2 EleutherAI/gpt-neo-125m facebook/opt-125m EleutherAI/pythia-160m`
+
+
+```
++----------------------+-----------+-------+--------------+----------+-------------+
+|      Benchmark       | gpt-alpha | gpt2  | gpt-neo-125m | opt-125m | pythia-160m |
++----------------------+-----------+-------+--------------+----------+-------------+
+| commonsenseqa_0shot  |   19.16   | 19.57 |    19.57     |  19.98   |    19.90    |
+|      piqa_0shot      |   63.06   | 62.51 |    62.46     |  62.08   |    61.26    |
+|      siqa_0shot      |   38.18   | 36.59 |    37.21     |  37.21   |    36.69    |
+|   openbookqa_0shot   |   29.80   | 27.20 |    26.20     |  28.00   |    27.00    |
+|    triviaqa_0shot    |   1.31    | 0.30  |     0.66     |   1.18   |    0.41     |
+|   truthfulqa_0shot   |   33.13   | 31.73 |    35.70     |  33.50   |    34.75    |
+|      mmlu_5shot      |   23.30   | 25.90 |    25.58     |  25.94   |    25.10    |
+|   winogrande_5shot   |   50.20   | 50.04 |    51.70     |  51.07   |    48.78    |
+| arc_challenge_25shot |   29.18   | 22.95 |    22.87     |  22.10   |    22.10    |
+|   hellaswag_10shot   |   35.74   | 31.64 |    30.58     |  31.69   |    30.15    |
+|     gsm8k_5shot      |   2.27    | 0.68  |     1.74     |   1.74   |    2.20     |
+|    Average Score     |   29.58   | 28.10 |    28.57     |  28.59   |    28.03    |
++----------------------+-----------+-------+--------------+----------+-------------+
+```
 
 ### Inference
 The GPT model can be used for inference using the `inference.py` script. The script generates completions given a context. The completions are generated using the top-k sampling strategy. The maximum length of the completions, temperature and k value can be set in the script. Alternatively, the model is available on the Hugging Face Model Hub [here](https://huggingface.co/fraserlove/gpt-alpha) for use in the Hugging Face Transformers library allows inference to be performed in three lines of code.
