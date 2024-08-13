@@ -6,6 +6,8 @@ References
 https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf
 2) GPT-3 Paper:
 https://arxiv.org/abs/2005.14165
+3) nanoGPT:
+https://github.com/karpathy/nanoGPT
 """
 
 import torch
