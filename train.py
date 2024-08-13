@@ -41,14 +41,14 @@ tokeniser = tiktoken.get_encoding('gpt2') # or GPTTokeniser('gpt.tkn')
 CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache/')
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-# ----------------------- Default training parameters for GPT-3 124M -------------------------
+# ------------------------------ Training parameters for GPT-α -------------------------------
 # The total batch size is the number of tokens to process in a single iteration before a gradient
 # update, for GPT-2 / GPT-3 this is 2^19 = ~0.5M tokens. A cosine learning rate schedule is used,
 # with a warmup period of 375M tokens as in GPT-3. This corresponds to 375e6 / 2^19 = 715 warmup
 # iterations. A max learning rate of 18e-4 (3x that of GPT-3) is used with a linear decay over
 # the training period. Each epoch on the fineweb_edu_10B dataset corresponds to 10^10 / 2^19 =
 # 19073 iterations. The vocabulary size is rounded up to the nearest multiple of 128, which is
-# 50304, for efficiency. The model is trained for 4.5 epochs, which corresponds to 4.5 *
+# 50304, for efficiency. GPT-α is trained for 4.5 epochs, which corresponds to 4.5 *
 # 19073 = 85829 iterations to surpass the performance of GPT-3 125M on the HellaSwag dataset.
 # Batch sizes of 32 / 64 are sufficient to fit a 124M model on a single GPU with 40GB / 80GB of
 # memory repsecitvely (if a block size of 1024 is used).

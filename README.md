@@ -1,7 +1,7 @@
 # GPT-α
-A full implementation of a Generative Pre-trained Transformer (GPT) model following the architecture of OpenAI's [GPT-2](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) and [GPT-3](https://arxiv.org/abs/2005.14165) models as well as [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy. The model is implemented in PyTorch and supports both single-GPU and multi-GPU training. The model is trained on the 10B token subset of [fineweb-edu](https://arxiv.org/pdf/2406.17557), a large-scale dataset of educational content. The model can be found on the Hugging Face Model Hub [here](https://huggingface.co/fraserlove/gpt-alpha).
+A full implementation of a Generative Pre-trained Transformer (GPT) model following the architecture of OpenAI's [GPT-2](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) and [GPT-3](https://arxiv.org/abs/2005.14165) models as well as [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy. The model is implemented in PyTorch and supports both single-GPU and multi-GPU training. GPT-α is trained on the 10B token subset of [fineweb-edu](https://arxiv.org/pdf/2406.17557), a large-scale dataset of educational content. The models weights and inference code can be found on the Hugging Face Model Hub [here](https://huggingface.co/fraserlove/gpt-alpha).
 
-The model surpasses GPT-2 124M on [HellaSwag](https://arxiv.org/pdf/1905.07830) after just 5B tokens and surpasses GPT-3 125M after 38B tokens. This is a 20x improvement over GPT-2 124M and 7.8x improvement over GPT-3, which were trained on 100B tokens and 300B tokens respectively. Training the model for 1 epoch of the 10B fineweb-edu subset, with a batch size of 16, took ~3.5 hours on 8x A100-SMX4 40GB GPUs.
+GPT-α surpasses GPT-2 124M on [HellaSwag](https://arxiv.org/pdf/1905.07830) after just 5B tokens and surpasses GPT-3 125M after 38B tokens. This is a 20x improvement over GPT-2 124M and 7.8x improvement over GPT-3, which were trained on 100B tokens and 300B tokens respectively. Training GPT-α for 1 epoch of the 10B fineweb-edu subset, with a batch size of 16, took ~3.5 hours on 8x A100-SMX4 40GB GPUs.
 
 ![Alt text](assets/124M_loss.png)
 ![Alt text](assets/124M_hs.png)
@@ -44,7 +44,7 @@ python fineweb.py
 The dataset is loaded via the `gpt/dataloader.py` script. This script loads the dataset from the shards, shuffling the shards and also shuffling the documents within each shard. The script then concatenates the documents and loads them into batches.
 
 ### Training
-The GPT model can be trained using the `train.py` script. The script supports both single-GPU and multi-GPU training using data parallelism. The model is trained using a custom training loop with a learning rate scheduler and gradient clipping as per GPT-3.
+GPT-α can be trained using the `train.py` script. The script supports both single-GPU and multi-GPU training using data parallelism. The model is trained using a custom training loop with a learning rate scheduler and gradient clipping as per GPT-3.
 
 To run on a single GPU, use the following command:
 ```bash
@@ -62,10 +62,10 @@ During training [HellaSwag](https://arxiv.org/pdf/1905.07830) is used to evaluat
 ```bash
 python hellaswag.py -m {hf_user}/{hf_model}
 ```
-Analysis of training the model, including plots of the loss trajectory and HellaSwag score throughout training, is performed
+Analysis of training, including plots of the loss trajectory and HellaSwag score throughout training, is performed
 within `eval/train_eval.ipynb`.
 
-A full evaluation can be performed by running the [Eleuther LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness). In order to run the evaluation harness the model must be exported to a HuggingFace transformer model. This is achieved via the `save_pretrained()` method within GPT which saves the model weights to a HuggingFace GPT-2 model, transposing the relevant tensors. For example, `attn.c_proj.weight` must be transposed because it was initially used as weights withing a Conv1D module rather than a Linear module. This has already been done and the model is avaliable on HuggingFace Hub [here](https://huggingface.co/fraserlove/gpt-alpha). Now download the Eleuther LM Evaluation Harness to perform evaluation on this model. Run the following to download and install it.
+A full evaluation can be performed by running the [Eleuther LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness). In order to run the evaluation harness the model must be exported to a HuggingFace transformer model. This is achieved via the `save_pretrained()` method within GPT which saves the model weights to a HuggingFace GPT-2 model, transposing the relevant tensors. For example, `attn.c_proj.weight` must be transposed because it was initially used as weights withing a Conv1D module rather than a Linear module. This has already been done and GPT-α is avaliable on HuggingFace Hub [here](https://huggingface.co/fraserlove/gpt-alpha). Now download the Eleuther LM Evaluation Harness to perform evaluation. Run the following to download and install it.
 ```
 git clone https://github.com/EleutherAI/lm-evaluation-harness/
 cd lm-evaluation-harness
@@ -77,7 +77,7 @@ Then the evaluation script, which contains code to run various evaluation tasks 
 cd eval/
 ./run_eval.sh {hf_user/hf_model1} {hf_user/hf_model2} ... {hf_user/hf_modelN}
 ```
-Specifically to perform evaluation on this model, run `./run_eval.sh fraserlove/gpt-alpha` within the `eval/` directory. This script will write evaluation json objects under the evaluation folder and will finish by printing the evaluation results using `python eval_results.py fraserlove/gpt-alpha`. This script can be rerun from within `eval/` to display these results at any time. Evaluation usually takes roughly an hour to run per model. Below is an example output from evaluation with `./run_eval.sh ./run_eval.sh fraserlove/gpt-alpha gpt2 EleutherAI/gpt-neo-125m facebook/opt-125m EleutherAI/pythia-160m`
+Specifically to perform evaluation on GPT-α, run `./run_eval.sh fraserlove/gpt-alpha` within the `eval/` directory. This script will write evaluation json objects under the evaluation folder and will finish by printing the evaluation results using `python eval_results.py fraserlove/gpt-alpha`. This script can be rerun from within `eval/` to display these results at any time. Evaluation usually takes roughly an hour to run per model. Below is an example output from evaluation with `./run_eval.sh ./run_eval.sh fraserlove/gpt-alpha gpt2 EleutherAI/gpt-neo-125m facebook/opt-125m EleutherAI/pythia-160m`
 
 
 ```
@@ -99,4 +99,4 @@ Specifically to perform evaluation on this model, run `./run_eval.sh fraserlove/
 ```
 
 ### Inference
-The GPT model can be used for inference using the `inference.py` script. The script generates completions given a context. The completions are generated using the top-k sampling strategy. The maximum length of the completions, temperature and k value can be set in the script. Alternatively, the model is available on the Hugging Face Model Hub [here](https://huggingface.co/fraserlove/gpt-alpha) for use in the Hugging Face Transformers library allows inference to be performed in three lines of code.
+GPT-α can be used for inference using the `inference.py` script. The script generates completions given a context. The completions are generated using the top-k sampling strategy. The maximum length of the completions, temperature and k value can be set in the script. Alternatively, GPT-α is available on the Hugging Face Model Hub [here](https://huggingface.co/fraserlove/gpt-alpha) for use in the Hugging Face Transformers library and allows for inference to be performed in three lines of code.
