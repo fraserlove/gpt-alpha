@@ -142,7 +142,7 @@ class GPT(nn.Module):
         """Configure AdamW optimiser with weight decay and learning rate."""
         params = {name: param for name, param in self.named_parameters() if param.requires_grad}
         # Any parameter that is at least 2D has weight decay applied - i.e. all weight tensors
-        # in matmuls + embeddings decay, all bias tensors don't.
+        # in matmuls + embeddings decay, all biases don't.
         decay_params = [param for _, param in params.items() if param.dim() >= 2]
         no_decay_params = [param for _, param in params.items() if param.dim() < 2]
         optim_groups = [
