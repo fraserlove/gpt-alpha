@@ -20,7 +20,7 @@ Once upon a time, the King of Italy, who was to govern what would become the wor
 
 ## Installation and Usage
 Run the following to install the GPT and its required dependencies:
-```bash
+```sh
 git clone https://github.com/fraserlove/gpt-alpha.git
 cd gpt
 python -m venv .venv
@@ -30,7 +30,7 @@ pip install -r requirements.txt
 
 ### Tokenisation
 The `gpt2` tokeniser within the `tiktoken` library is used as the default tokeniser, however, a custom tokeniser is available within `gpt.tokeniser`. To train the custom tokeniser on the first 10,000 documents in the `fineweb-edu` dataset, run the following command:
-```bash
+```sh
 python gpt/tokeniser.py
 ```
 The custom tokeniser is saved as `gpt.tkn`. To use the custom tokeniser, replace `tiktoken.get_encoding('gpt2')` with `GPTTokeniser('gpt.tkn')` in `gpt/tokeniser.py`.
@@ -38,7 +38,7 @@ Note that the same tokeniser used when importing the `fineweb-edu` dataset must 
 
 ### Dataset
 The fineweb-edu dataset is used as the dataset for training the GPT model as it is a large-scale, high quality dataset of educational content. By default, the `sample-10B` version of the dataset is used, which contains 10B tokens. The dataset is available on the Hugging Face Datasets Hub and can be downloaded using the `datasets` library. The dataset is tokenised and stored in shards in the `cache/fineweb_edu_10B` directory. To download the dataset and tokenise into shards, run the following command:
-```bash
+```sh
 python fineweb.py
 ```
 The dataset is loaded via the `gpt/dataloader.py` script. This script loads the dataset from the shards, shuffling the shards and also shuffling the documents within each shard. The script then concatenates the documents and loads them into batches.
@@ -47,33 +47,33 @@ The dataset is loaded via the `gpt/dataloader.py` script. This script loads the 
 GPT-α can be trained using the `train.py` script. The script supports both single-GPU and multi-GPU training using data parallelism. The model is trained using a custom training loop with a learning rate scheduler and gradient clipping as per GPT-3.
 
 To run on a single GPU, use the following command:
-```bash
+```sh
 python train.py
 ```
 
 To run on multiple GPUs, use the following command:
-```bash
+```sh
 torchrun --standalone --nproc_per_node={n_gpus} train.py
 ```
 where `n_gpus` is the number of GPUs to use in training.
 
 ### Evaluation
 During training [HellaSwag](https://arxiv.org/pdf/1905.07830) is used to evaluate the GPT model. To evaluate any model from HuggingFace on the HellaSwag dataset, run the `hellaswag.py` script:
-```bash
+```sh
 python hellaswag.py -m {hf_user}/{hf_model}
 ```
 Analysis of training, including plots of the loss trajectory and HellaSwag score throughout training, is performed
 within `eval/train_eval.ipynb`.
 
 A full evaluation can be performed by running the [Eleuther LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness). In order to run the evaluation harness the model must be exported to a HuggingFace transformer model. This is achieved via the `save_pretrained()` method within GPT which saves the model weights to a HuggingFace GPT-2 model, transposing the relevant tensors. For example, `attn.c_proj.weight` must be transposed because it was initially used as weights withing a Conv1D module rather than a Linear module. This has already been done and GPT-α is avaliable on HuggingFace Hub [here](https://huggingface.co/fraserlove/gpt-alpha). Now download the Eleuther LM Evaluation Harness to perform evaluation. Run the following to download and install it.
-```
+```sh
 git clone https://github.com/EleutherAI/lm-evaluation-harness/
 cd lm-evaluation-harness
 git checkout 0571eeb14d4e48aac51956a726c62cd8b382b3d8
 pip install -e .
 ```
 Then the evaluation script, which contains code to run various evaluation tasks on a HuggingFace model, can be invoked with:
-```
+```sh
 cd eval/
 ./run_eval.sh {hf_user/hf_model1} {hf_user/hf_model2} ... {hf_user/hf_modelN}
 ```
